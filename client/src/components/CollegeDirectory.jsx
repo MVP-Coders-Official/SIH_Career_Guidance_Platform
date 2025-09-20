@@ -388,7 +388,7 @@ const CollegeDirectory = () => {
               </div>
 
               <div className="college-meta">
-                <span className={`university-type ${getTypeColor(college.type)}`}>
+                <span className={`university-type ${getTypeColor(college.type)}`} style={{ color : 'black'}}>
                   {college.type}
                 </span>
                 <span className="established-year">
