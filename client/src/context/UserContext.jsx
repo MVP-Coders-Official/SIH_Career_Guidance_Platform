@@ -100,10 +100,11 @@ export function UserProvider({ children }) {
 
   const login = (userData) => setUser(userData);
   const logout = () => setUser(null);
+  const updateUser = (userData) => setUser(userData);
 
   return (
     <UserContext.Provider value={{ 
-      user, login, logout, 
+      user, login, logout, updateUser,
       loading, setLoading,       // 👈 now available
       quizResults, setQuizResults // 👈 now available
     }}>

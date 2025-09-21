@@ -51,39 +51,43 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+  setIsLoading(true);
+
+  try {
+    // Send login data to backend
+    const response = await fetch("http://localhost:8000/api/v1/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // needed if backend sends refresh token cookies
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Invalid email or password");
     }
 
-    setIsLoading(true);
+    // Save user info to context (remove password if sent)
+    updateUser(data.data.user);
 
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    // Optionally store access token in localStorage
+    localStorage.setItem("accessToken", data.data.accessToken);
 
-      // Check if user exists (simulate database check)
-      const existingUsers = JSON.parse(localStorage.getItem('careersync-users') || '[]');
-      const user = existingUsers.find(u => 
-        u.email === formData.email && u.password === formData.password
-      );
-
-      if (user) {
-        // Remove password from user object before storing
-        const { password, ...userWithoutPassword } = user;
-        updateUser(userWithoutPassword);
-        toast.success('Login successful!');
-        navigate('/');
-      } else {
-        toast.error('Invalid email or password');
-      }
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    toast.success("Login successful!");
+    navigate("/"); // redirect to home page
+  } catch (error) {
+    toast.error(error.message || "Login failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="auth-container">

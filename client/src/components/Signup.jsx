@@ -109,55 +109,44 @@ const Signup = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+
+  try {
+    // Create an object with only name, email, and password
+    const postData = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    };
+
+    const response = await fetch("http://localhost:8000/api/v1/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(postData), // send only name, email, password
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Signup failed");
     }
 
-    setIsLoading(true);
+    // Update user context with backend response
+    updateUser(data.data);
 
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    toast.success("Account created successfully!");
+    navigate("/login"); // redirect to login after signup
+  } catch (error) {
+    toast.error(error.message || "Signup failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-      // Check if user already exists
-      const existingUsers = JSON.parse(localStorage.getItem('careersync-users') || '[]');
-      const userExists = existingUsers.find(u => u.email === formData.email);
-
-      if (userExists) {
-        toast.error('User with this email already exists');
-        return;
-      }
-
-      // Create new user
-      const newUser = {
-        id: Date.now(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        preferences: {
-          location: formData.location,
-          stream: formData.stream,
-          interests: []
-        }
-      };
-
-      // Save to localStorage
-      const updatedUsers = [...existingUsers, newUser];
-      localStorage.setItem('careersync-users', JSON.stringify(updatedUsers));
-
-      // Remove password from user object before storing in context
-      const { password, confirmPassword, ...userWithoutPassword } = newUser;
-      updateUser(userWithoutPassword);
-
-      toast.success('Account created successfully!');
-      navigate('/');
-    } catch (error) {
-      toast.error('Signup failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="auth-container">
@@ -361,15 +350,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <div className="form-options">
-            <label className="checkbox-container">
-              <input type="checkbox" className="checkbox-input" required />
-              <span className="custom-checkbox"></span>
-              <span className="checkbox-label">
-                I agree to the <Link to="/terms" className="terms-link">Terms of Service</Link> and <Link to="/privacy" className="terms-link">Privacy Policy</Link>
-              </span>
-            </label>
-          </div>
+          
 
           <button
             type="submit"
